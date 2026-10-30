@@ -17,7 +17,10 @@ mongoose.connect(process.env.MONGO_URI)
 
 // Rutas de la API
 const recursoRoutes = require('./routes/recursoRoutes');
+const authRoutes = require('./routes/authRoutes');
+
 app.use('/api/recursos', recursoRoutes);
+app.use('/api/auth', authRoutes);
 
 // Ruta de prueba inicial
 app.get('/', (req, res) => {
