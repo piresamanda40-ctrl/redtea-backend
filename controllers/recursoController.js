@@ -1,6 +1,6 @@
 const Recurso = require('../models/Recurso');
 
-// 1. Ver todos los recursos
+// 1. Ver todos los recursos (con filtros opcionales)
 const obtenerRecursos = async (req, res) => {
   try {
     const { provincia, categoria } = req.query;
@@ -27,7 +27,41 @@ const crearRecurso = async (req, res) => {
   }
 };
 
+// 3. Actualizar un recurso existente (PUT)
+const actualizarRecurso = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const recursoActualizado = await Recurso.findByIdAndUpdate(id, req.body, { new: true, runValidators: true });
+    
+    if (!recursoActualizado) {
+      return res.status(404).json({ mensaje: 'Recurso no encontrado' });
+    }
+    
+    res.json(recursoActualizado);
+  } catch (error) {
+    res.status(400).json({ mensaje: 'Error al actualizar el recurso', error });
+  }
+};
+
+// 4. Eliminar un recurso (DELETE)
+const eliminarRecurso = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const recursoEliminado = await Recurso.findByIdAndDelete(id);
+    
+    if (!recursoEliminado) {
+      return res.status(404).json({ mensaje: 'Recurso no encontrado' });
+    }
+    
+    res.json({ mensaje: 'Recurso eliminado correctamente' });
+  } catch (error) {
+    res.status(500).json({ mensaje: 'Error al eliminar el recurso', error });
+  }
+};
+
 module.exports = {
   obtenerRecursos,
-  crearRecurso
+  crearRecurso,
+  actualizarRecurso,
+  eliminarRecurso
 };

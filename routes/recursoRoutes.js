@@ -1,11 +1,16 @@
 const express = require('express');
 const router = express.Router();
-const { obtenerRecursos, crearRecurso } = require('../controllers/recursoController');
+const { 
+  obtenerRecursos, 
+  crearRecurso, 
+  actualizarRecurso, 
+  eliminarRecurso 
+} = require('../controllers/recursoController');
 
-// Ruta para ver los recursos: GET /api/recursos
+// Rutas públicas
 router.get('/', obtenerRecursos);
-
-// Ruta para crear un recurso: POST /api/recursos
 router.post('/', crearRecurso);
+router.put('/:id', actualizarRecurso);
+router.delete('/:id', eliminarRecurso);
 
 module.exports = router;
