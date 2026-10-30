@@ -6,11 +6,14 @@ const {
   actualizarRecurso, 
   eliminarRecurso 
 } = require('../controllers/recursoController');
+const { verificarToken } = require('../middleware/authMiddleware'); // <-- Importamos el middleware
 
-// Rutas públicas
+// Ruta pública (cualquier persona puede ver la lista de recursos)
 router.get('/', obtenerRecursos);
-router.post('/', crearRecurso);
-router.put('/:id', actualizarRecurso);
-router.delete('/:id', eliminarRecurso);
+
+// Rutas protegidas (requieren enviar el token JWT en los headers)
+router.post('/', verificarToken, crearRecurso);
+router.put('/:id', verificarToken, actualizarRecurso);
+router.delete('/:id', verificarToken, eliminarRecurso);
 
 module.exports = router;
