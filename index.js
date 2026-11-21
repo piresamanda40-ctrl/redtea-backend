@@ -4,29 +4,55 @@ const cors = require('cors');
 require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
 // Middlewares
 app.use(cors());
-app.use(express.json()); // Permite recibir datos en formato JSON
+app.use(express.json());
 
-// Conexión a MongoDB Atlas
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('Conectado a MongoDB Atlas'))
-  .catch((error) => console.error('Error conectando a MongoDB:', error));
+// Importar rutas
+const authRoutes = require('./routes/auth');
+const resourceRoutes = require('./routes/resourceRoutes');
 
-// Rutas de la API
-const recursoRoutes = require('./routes/recursoRoutes');
-const authRoutes = require('./routes/authRoutes');
-
-app.use('/api/recursos', recursoRoutes);
+// Usar rutas
 app.use('/api/auth', authRoutes);
+app.use('/api/recursos', resourceRoutes);
 
-// Ruta de prueba inicial
+// Ruta de prueba general
 app.get('/', (req, res) => {
-  res.send('¡El servidor de RedTEA está funcionando!');
+  res.status(200).send('Servidor de RedTEA funcionando correctamente');
 });
 
-app.listen(PORT, () => {
-  console.log(`Servidor escuchando en http://localhost:${PORT}`);
+// Middleware para rutas no encontradas (404)
+app.use((req, res) => {
+  res.status(404).json({ mensaje: 'Ruta no encontrada' });
 });
+
+// Middleware global de gestión de errores
+app.use((err, req, res, next) => {
+  console.error('❌ Error en el servidor:', err.stack || err.message);
+  const statusCode = err.status || err.statusCode || 500;
+  res.status(statusCode).json({
+    mensaje: statusCode === 500 ? 'Error interno del servidor' : err.message,
+  });
+});
+
+const PORT = process.env.PORT || 5000;
+const MONGO_URI = process.env.MONGO_URI;
+
+if (!MONGO_URI) {
+  console.error('🔴 Falta MONGO_URI en el archivo .env');
+  process.exit(1);
+}
+
+mongoose
+  .connect(MONGO_URI)
+  .then(() => {
+    console.log('🟢 Conectado exitosamente a MongoDB Atlas');
+    app.listen(PORT, () => {
+      console.log(`🚀 Servidor ejecutándose en http://localhost:${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error('🔴 Error conectando a MongoDB:', err.message);
+    process.exit(1);
+  });

@@ -1,24 +1,28 @@
 const jwt = require('jsonwebtoken');
 
-const verificarToken = (req, res, next) => {
-  // Obtener el header de autorización
-  const authHeader = req.headers['authorization'];
-  
-  // El formato suele ser "Bearer <token>", extraemos solo el token
-  const token = authHeader && authHeader.split(' ')[1];
+const protect = (req, res, next) => {
+  const authHeader = req.headers.authorization;
 
-  if (!token) {
-    return res.status(401).json({ mensaje: 'Acceso denegado. No se proporcionó un token de autenticación.' });
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ mensaje: 'Acceso denegado. Falta el token' });
   }
 
+  const token = authHeader.split(' ')[1];
+
   try {
-    // Verificar el token usando la clave secreta del .env
-    const verificado = jwt.verify(token, process.env.JWT_SECRET);
-    req.usuario = verificado; // Guardamos los datos del usuario decodificados en la petición
-    next(); // Continuar con la siguiente función (el controlador)
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+    next();
   } catch (error) {
-    res.status(403).json({ mensaje: 'Token no válido o expirado.' });
+    return res.status(401).json({ mensaje: 'Token no válido o expirado' });
   }
 };
 
-module.exports = { verificarToken };
+const isAdmin = (req, res, next) => {
+  if (!req.user || req.user.rol !== 'admin') {
+    return res.status(403).json({ mensaje: 'Acceso restringido a administradores' });
+  }
+  next();
+};
+
+module.exports = { protect, isAdmin };
